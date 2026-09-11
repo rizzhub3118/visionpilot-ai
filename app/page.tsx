@@ -6,11 +6,13 @@ import CameraView from "@/components/CameraView";
 export default function Home() {
   const [cameraEnabled, setCameraEnabled] = useState(false);
 
+  // NEW
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+
   return (
     <main className="min-h-screen bg-[#030712] text-white transition-all duration-500">
       {!cameraEnabled ? (
         <section className="mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center px-6 text-center">
-
           <h1 className="font-[family:var(--font-heading)] text-6xl font-bold tracking-tight md:text-8xl">
             VisionPilot
           </h1>
@@ -36,9 +38,7 @@ export default function Home() {
         </section>
       ) : (
         <section className="mx-auto flex min-h-screen max-w-7xl flex-col px-6 py-10">
-
           <header className="mb-8 flex items-center justify-between">
-
             <div>
               <h1 className="font-[family:var(--font-heading)] text-4xl font-bold">
                 VisionPilot
@@ -55,11 +55,12 @@ export default function Home() {
             >
               Close Camera
             </button>
-
           </header>
 
-          <CameraView />
-
+          <CameraView
+            capturedImage={capturedImage}
+            setCapturedImage={setCapturedImage}
+          />
         </section>
       )}
     </main>
