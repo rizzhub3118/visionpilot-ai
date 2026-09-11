@@ -31,7 +31,7 @@ Return ONLY valid JSON in this exact format:
   "model": "",
   "category": "",
   "confidence": "",
-  "estimated_price": "",
+  "estimated_price": "₹0"
   "description": "",
   "key_features": [],
   "follow_up_questions": []
@@ -45,6 +45,9 @@ If it is a product:
 - If you are not confident about the exact model, return "Unknown" instead of guessing.
 - Never invent or hallucinate a model name.
 - Confidence must be High, Medium, or Low.
+- Return the estimated retail price in Indian Rupees (₹).
+- If the exact Indian price is unknown, return a realistic INR price range.
+- Never return prices in USD.
 - If the price cannot be estimated, return "Unknown".
 - Description should be under 50 words.
 - key_features should contain 3 short bullet points.
