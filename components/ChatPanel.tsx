@@ -1,9 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+interface AnalysisResult {
+  object: string;
+  brand: string;
+  model: string;
+  category: string;
+  confidence: string;
+  estimated_price: string;
+  description: string;
+  key_features: string[];
+  follow_up_questions: string[];
+}
 
 interface ChatPanelProps {
   capturedImage: string | null;
+  analysis: AnalysisResult | null;
 }
 
 interface Message {
@@ -13,10 +26,19 @@ interface Message {
 
 export default function ChatPanel({
   capturedImage,
-}: ChatPanelProps) {
+  analysis,
+}: ChatPanelProps)  {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
+
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages, loading]);
 
   const askAI = async () => {
     if (!capturedImage) {
@@ -28,15 +50,15 @@ export default function ChatPanel({
 
     const userQuestion = question;
 
-    // Add user message immediately
-    setMessages((prev) => [
-      ...prev,
+    const updatedMessages: Message[] = [
+      ...messages,
       {
         role: "user",
         text: userQuestion,
       },
-    ]);
+    ];
 
+    setMessages(updatedMessages);
     setQuestion("");
 
     try {
@@ -49,13 +71,8 @@ export default function ChatPanel({
         },
         body: JSON.stringify({
   image: capturedImage,
-  messages: [
-    ...messages,
-    {
-      role: "user",
-      text: userQuestion,
-    },
-  ],
+  analysis,
+  messages: updatedMessages,
 }),
       });
 
@@ -112,7 +129,7 @@ export default function ChatPanel({
             }`}
           >
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+              className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-3 ${
                 message.role === "user"
                   ? "bg-cyan-400 text-slate-900"
                   : "bg-slate-800 text-white"
@@ -125,27 +142,47 @@ export default function ChatPanel({
 
         {loading && (
           <div className="flex justify-start">
-            <div className="rounded-2xl bg-slate-800 px-4 py-3 text-white">
+            <div className="rounded-2xl bg-slate-800 px-4 py-3 text-white animate-pulse">
               🧠 VisionPilot is thinking...
             </div>
           </div>
         )}
+
+        <div ref={messagesEndRef} />
+
       </div>
 
       <textarea
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            askAI();
+          }
+        }}
         placeholder="Ask anything about the captured image..."
         className="min-h-[100px] w-full rounded-2xl border border-white/10 bg-[#111827] p-4 text-white outline-none placeholder:text-slate-500 focus:border-cyan-400"
       />
 
-      <button
-        onClick={askAI}
-        disabled={loading}
-        className="mt-4 rounded-2xl bg-cyan-400 px-8 py-3 font-semibold text-slate-900 transition hover:scale-105 hover:bg-cyan-300 disabled:opacity-50"
-      >
-        Send
-      </button>
+      <div className="mt-4 flex gap-4">
+
+        <button
+          onClick={askAI}
+          disabled={loading}
+          className="rounded-2xl bg-cyan-400 px-8 py-3 font-semibold text-slate-900 transition hover:scale-105 hover:bg-cyan-300 disabled:opacity-50"
+        >
+          Send
+        </button>
+
+        <button
+          onClick={() => setMessages([])}
+          className="rounded-2xl border border-white/10 px-8 py-3 transition hover:bg-white/10"
+        >
+          New Chat
+        </button>
+
+      </div>
 
     </div>
   );

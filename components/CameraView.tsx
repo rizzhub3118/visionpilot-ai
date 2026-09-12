@@ -7,6 +7,8 @@ import Webcam from "react-webcam";
 interface CameraViewProps {
   capturedImage: string | null;
   setCapturedImage: React.Dispatch<React.SetStateAction<string | null>>;
+  analysis: AnalysisResult | null;
+  setAnalysis: React.Dispatch<React.SetStateAction<AnalysisResult | null>>;
 }
 interface AnalysisResult {
   object: string;
@@ -23,7 +25,9 @@ interface AnalysisResult {
 export default function CameraView({
   capturedImage,
   setCapturedImage,
-}: CameraViewProps) {
+  analysis,
+  setAnalysis,
+}: CameraViewProps){
     
   const webcamRef = useRef<Webcam>(null);
 

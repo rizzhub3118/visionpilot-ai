@@ -9,27 +9,36 @@ const model = genAI.getGenerativeModel({
 
 export async function POST(req: Request) {
   try {
-    const { image, messages } = await req.json();
+    const { image, messages, analysis } = await req.json();
 
     if (!image || !messages) {
       return NextResponse.json(
-        { error: "Image and messages are required." },
-        { status: 400 }
+        {
+          error: "Image and messages are required.",
+        },
+        {
+          status: 400,
+        }
       );
     }
 
-    const result = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-  text: `
+    const prompt = `
 You are VisionPilot AI, an intelligent visual assistant.
 
-You have access to the uploaded image.
+You have access to:
+1. The uploaded image.
+2. An initial AI analysis of the image.
+3. The complete conversation history.
 
-Below is the entire conversation so far.
+=========================
+INITIAL IMAGE ANALYSIS
+=========================
+
+${analysis ? JSON.stringify(analysis, null, 2) : "No analysis available."}
+
+=========================
+CONVERSATION
+=========================
 
 ${messages
   .map(
@@ -38,39 +47,49 @@ ${messages
   )
   .join("\n")}
 
-Rules:
-- Continue the conversation naturally.
-- Always use the uploaded image as context.
-- Remember previous questions and your previous answers.
-- If you don't know something from the image, say "I'm not confident enough to determine that."
-- Never invent specifications or product models.
-- Keep answers concise but informative.
+=========================
+RULES
+=========================
 
-Now answer the latest user message.
-`,
-},
-            {
-              inlineData: {
-                mimeType: "image/jpeg",
-                data: image.replace(/^data:image\/\w+;base64,/, ""),
-              },
-            },
-          ],
+- Always use the uploaded image as the primary source.
+- Use the Initial Image Analysis as additional context.
+- Remember previous questions and answers.
+- Continue the conversation naturally.
+- Never invent brands, models or specifications.
+- If you are uncertain, clearly say so.
+- Never claim that a product does not exist.
+- Your knowledge may not include the newest product releases.
+- If the image alone cannot confirm an exact model, explicitly say that.
+- Keep responses concise, helpful and conversational.
+
+Now answer the user's latest question.
+`;
+
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType: "image/jpeg",
+          data: image.replace(/^data:image\/\w+;base64,/, ""),
         },
-      ],
-    });
+      },
+    ]);
+
+    const answer = result.response.text();
 
     return NextResponse.json({
-      answer: result.response.text(),
+      answer,
     });
   } catch (error: any) {
-    console.error(error);
+    console.error("CHAT ERROR:", error);
 
     return NextResponse.json(
       {
-        error: error.message || "Chat failed.",
+        error: error?.message || "Chat failed.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }

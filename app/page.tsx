@@ -8,6 +8,7 @@ export default function Home() {
 
   // NEW
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<any>(null);
 
   return (
     <main className="min-h-screen bg-[#030712] text-white transition-all duration-500">
@@ -58,11 +59,16 @@ export default function Home() {
           </header>
 
           <CameraView
-            capturedImage={capturedImage}
-            setCapturedImage={setCapturedImage}
-          />
+  capturedImage={capturedImage}
+  setCapturedImage={setCapturedImage}
+  analysis={analysis}
+  setAnalysis={setAnalysis}
+/>
 
-          <ChatPanel capturedImage={capturedImage} />
+          <ChatPanel
+  capturedImage={capturedImage}
+  analysis={analysis}
+/>
         </section>
       )}
     </main>
