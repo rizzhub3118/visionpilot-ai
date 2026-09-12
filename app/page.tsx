@@ -1,5 +1,5 @@
 "use client";
-
+import ChatPanel from "@/components/ChatPanel";
 import { useState } from "react";
 import CameraView from "@/components/CameraView";
 
@@ -61,6 +61,8 @@ export default function Home() {
             capturedImage={capturedImage}
             setCapturedImage={setCapturedImage}
           />
+
+          <ChatPanel capturedImage={capturedImage} />
         </section>
       )}
     </main>
