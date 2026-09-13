@@ -236,19 +236,7 @@ export default function CameraView({
                   </ul>
                 </div>
 
-                <div>
-                  <b>Suggested Questions</b>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {analysis.follow_up_questions.map((q, index) => (
-                      <button
-                        key={index}
-                        className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm"
-                      >
-                        {q}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              
 
               </div>
 

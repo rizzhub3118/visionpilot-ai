@@ -40,15 +40,15 @@ export default function ChatPanel({
     });
   }, [messages, loading]);
 
-  const askAI = async () => {
+  const askAI = async (input?: string) => {
     if (!capturedImage) {
       alert("Please capture and analyze an image first.");
       return;
     }
 
-    if (!question.trim()) return;
+    const userQuestion = input ?? question;
 
-    const userQuestion = question;
+if (!userQuestion.trim()) return;
 
     const updatedMessages: Message[] = [
       ...messages,
@@ -152,6 +152,22 @@ export default function ChatPanel({
 
       </div>
 
+      {analysis && analysis.follow_up_questions.length > 0 && (
+  <div className="mb-4 flex flex-wrap gap-2">
+    {analysis.follow_up_questions.map((q, index) => (
+      <button
+        key={index}
+        onClick={() => {
+  askAI(q);
+}}
+        className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-200 transition hover:bg-cyan-500/20"
+      >
+        {q}
+      </button>
+    ))}
+  </div>
+)}
+
       <textarea
         value={question}
         onChange={(e) => setQuestion(e.target.value)}
@@ -168,7 +184,7 @@ export default function ChatPanel({
       <div className="mt-4 flex gap-4">
 
         <button
-          onClick={askAI}
+          onClick={() => askAI()}
           disabled={loading}
           className="rounded-2xl bg-cyan-400 px-8 py-3 font-semibold text-slate-900 transition hover:scale-105 hover:bg-cyan-300 disabled:opacity-50"
         >
