@@ -1,10 +1,8 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
-const model = genAI.getGenerativeModel({
-  model: "gemini-3.6-flash",
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY!,
 });
 
 export async function POST(req: Request) {
@@ -36,6 +34,20 @@ INITIAL IMAGE ANALYSIS
 
 ${analysis ? JSON.stringify(analysis, null, 2) : "No analysis available."}
 
+Treat this analysis as verified context generated from the uploaded image.
+
+Unless the user asks you to re-evaluate something, do not contradict this analysis without explaining why.
+
+Use it to answer follow-up questions about:
+- Brand
+- Model
+- Price
+- Features
+- Description
+- Category
+
+Only re-examine the image if the user's question specifically requires it.
+
 =========================
 CONVERSATION
 =========================
@@ -51,34 +63,83 @@ ${messages
 RULES
 =========================
 
-- Always use the uploaded image as the primary source.
-- Use the Initial Image Analysis as additional context.
-- Remember previous questions and answers.
-- Continue the conversation naturally.
-- Never invent brands, models or specifications.
-- If you are uncertain, clearly say so.
-- Never claim that a product does not exist.
+- Treat the uploaded image as the primary source of truth.
+- Use the Initial Image Analysis only as supporting context.
+- Remember the full conversation and answer naturally.
+- If multiple products share a similar design, explain that the image alone is insufficient to determine the exact model. Never present a single model as certain unless distinctive visual evidence exists.
+- If the user asks about specifications, explain which ones are visible and which require confirmation.
+- If the user asks about price, provide only an estimate and clearly state that prices vary.
+- If you are uncertain, explain why instead of guessing.
+- Keep answers concise, accurate and conversational.
+- Never invent brands, model names, prices or specifications.
+- Never claim that a product does not exist based only on your internal knowledge.
 - Your knowledge may not include the newest product releases.
-- If the image alone cannot confirm an exact model, explicitly say that.
-- Keep responses concise, helpful and conversational.
+- If the user mentions a newer product than you know, acknowledge the possibility instead of denying it.
+- If the image cannot distinguish between visually similar models, explicitly say so.
+- When identifying a product model, explain which visible features support your conclusion.
+
+=========================
+RESPONSE STYLE
+=========================
+
+- Answer like a helpful AI assistant, not a JSON generator.
+- Keep answers under 120 words unless the user asks for more detail.
+- Use bullet points only when they improve readability.
+- If you are uncertain, state your confidence level (High, Medium, or Low) and explain why.
+- If the user asks a follow-up question, answer it directly without repeating the entire analysis.
+- Never start every reply with "Based on the uploaded image...".
+- Use natural language.
+- If the user asks something unrelated to the uploaded image, politely explain that your answers are limited to the uploaded image and the current conversation.
+
+
+=========================
+KNOWLEDGE LIMITS
+=========================
+
+- Your training knowledge has a cutoff and may not include the latest products or events.
+- If the user refers to something newer than your knowledge, never deny it exists.
+- Instead, say that it may have been released after your knowledge cutoff.
+- Distinguish between:
+  1. What you can directly observe in the image.
+  2. What you know from prior knowledge.
+  3. What you are uncertain about.
+- If you cannot verify the latest information, clearly say so instead of guessing.
 
 Now answer the user's latest question.
 `;
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: image.replace(/^data:image\/\w+;base64,/, ""),
-        },
-      },
-    ]);
+    const result = await ai.models.generateContent({
+      model: "gemini-3.6-flash",
 
-    const answer = result.response.text();
+      // Enable later if you have enough quota
+      // config: {
+      //   tools: [
+      //     {
+      //       googleSearch: {},
+      //     },
+      //   ],
+      // },
+
+      contents: [
+        {
+          role: "user",
+          parts: [
+            {
+              text: prompt,
+            },
+            {
+              inlineData: {
+                mimeType: "image/jpeg",
+                data: image.replace(/^data:image\/\w+;base64,/, ""),
+              },
+            },
+          ],
+        },
+      ],
+    });
 
     return NextResponse.json({
-      answer,
+      answer: result.text,
     });
   } catch (error: any) {
     console.error("CHAT ERROR:", error);

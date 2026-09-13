@@ -40,6 +40,11 @@ export default function ChatPanel({
     });
   }, [messages, loading]);
 
+  useEffect(() => {
+  setMessages([]);
+  setQuestion("");
+}, [capturedImage]);
+
   const askAI = async (input?: string) => {
     if (!capturedImage) {
       alert("Please capture and analyze an image first.");
@@ -79,7 +84,18 @@ if (!userQuestion.trim()) return;
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to get AI response.");
+        if (!response.ok) {
+  if (
+    typeof data.error === "string" &&
+    data.error.includes("RESOURCE_EXHAUSTED")
+  ) {
+    throw new Error(
+      "Gemini API quota exceeded. Please wait for your quota to reset or upgrade your API plan."
+    );
+  }
+
+  throw new Error(data.error || "Failed to get AI response.");
+}
       }
 
       setMessages((prev) => [

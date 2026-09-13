@@ -10,6 +10,7 @@ interface AnalysisResult {
   model: string;
   category: string;
   confidence: string;
+  reasoning: string;
   estimated_price: string;
   description: string;
   key_features: string[];
@@ -222,6 +223,13 @@ export default function CameraView({
                 <p><b>Category:</b> {analysis.category}</p>
 
                 <p><b>Confidence:</b> {analysis.confidence}</p>
+
+                <div>
+  <b>🧠 Why I think this</b>
+  <p className="mt-2 text-slate-300 leading-7">
+    {analysis.reasoning}
+  </p>
+</div>
 
                 <p><b>Description:</b><br />{analysis.description}</p>
 
