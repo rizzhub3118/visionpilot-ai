@@ -30,9 +30,47 @@ export default function ChatPanel({
 }: ChatPanelProps)  {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isListening, setIsListening] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const startListening = () => {
+  const SpeechRecognition =
+    (window as any).SpeechRecognition ||
+    (window as any).webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    alert("Speech Recognition is not supported in this browser.");
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+
+  recognition.lang = "en-US";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onstart = () => {
+    setIsListening(true);
+  };
+
+  recognition.onend = () => {
+    setIsListening(false);
+  };
+
+  recognition.onresult = (event: any) => {
+    const transcript = event.results[0][0].transcript;
+    setQuestion(transcript);
+  };
+
+  recognition.onerror = () => {
+    setIsListening(false);
+    alert("Couldn't recognize your voice. Please try again.");
+  };
+
+  recognition.start();
+};
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({
@@ -105,6 +143,18 @@ if (!userQuestion.trim()) return;
           text: data.answer,
         },
       ]);
+
+      if ("speechSynthesis" in window) {
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(data.answer);
+
+  utterance.lang = "en-US";
+  utterance.rate = 1;
+  utterance.pitch = 1;
+
+  window.speechSynthesis.speak(utterance);
+}
     } catch (error) {
       console.error(error);
 
@@ -199,22 +249,34 @@ if (!userQuestion.trim()) return;
 
       <div className="mt-4 flex gap-4">
 
-        <button
-          onClick={() => askAI()}
-          disabled={loading}
-          className="rounded-2xl bg-cyan-400 px-8 py-3 font-semibold text-slate-900 transition hover:scale-105 hover:bg-cyan-300 disabled:opacity-50"
-        >
-          Send
-        </button>
+  <button
+    onClick={() => askAI()}
+    disabled={loading}
+    className="rounded-2xl bg-cyan-400 px-8 py-3 font-semibold text-slate-900 transition hover:scale-105 hover:bg-cyan-300 disabled:opacity-50"
+  >
+    Send
+  </button>
 
-        <button
-          onClick={() => setMessages([])}
-          className="rounded-2xl border border-white/10 px-8 py-3 transition hover:bg-white/10"
-        >
-          New Chat
-        </button>
+  <button
+    onClick={startListening}
+    disabled={isListening}
+    className={`rounded-2xl px-6 py-3 font-semibold transition ${
+      isListening
+        ? "bg-red-500 text-white animate-pulse"
+        : "bg-violet-500 text-white hover:bg-violet-400"
+    }`}
+  >
+    {isListening ? "🎙️ Listening..." : "🎤 Speak"}
+  </button>
 
-      </div>
+  <button
+    onClick={() => setMessages([])}
+    className="rounded-2xl border border-white/10 px-8 py-3 transition hover:bg-white/10"
+  >
+    New Chat
+  </button>
+
+</div>
 
     </div>
   );

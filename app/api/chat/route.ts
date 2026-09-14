@@ -109,7 +109,7 @@ Now answer the user's latest question.
 `;
 
     const result = await ai.models.generateContent({
-      model: "gemini-3.6-flash",
+      model: "gemini-3.8-flash",
 
       // Enable later if you have enough quota
       // config: {
