@@ -6,6 +6,8 @@ const ai = new GoogleGenAI({
 });
 
 export async function POST(req: Request) {
+  console.count("Analyze API Called");
+
   try {
     const { image, messages, analysis } = await req.json();
 
@@ -108,6 +110,7 @@ KNOWLEDGE LIMITS
 Now answer the user's latest question.
 `;
 
+    console.log("Calling Gemini...");
     const result = await ai.models.generateContent({
       model: "gemini-3.8-flash",
 
@@ -141,16 +144,19 @@ Now answer the user's latest question.
     return NextResponse.json({
       answer: result.text,
     });
-  } catch (error: any) {
-    console.error("CHAT ERROR:", error);
 
-    return NextResponse.json(
-      {
-        error: error?.message || "Chat failed.",
-      },
-      {
-        status: 500,
-      }
-    );
-  }
+    console.log("Gemini responded");
+  } catch (error: any) {
+  console.error("FULL GEMINI ERROR:");
+  console.dir(error, { depth: null });
+
+  return NextResponse.json(
+    {
+      error: error,
+    },
+    {
+      status: 500,
+    }
+  );
+}
 }
